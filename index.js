@@ -8,8 +8,8 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve pages
-app.get("/", (req, res) => res.sendFile(__dirname + "/views/index.html"));
-app.get("/admin", (req, res) => res.sendFile(__dirname + "/views/admin.html"));
+app.get("/", (req, res) => res.sendFile(__dirname + "index.html"));
+app.get("/admin", (req, res) => res.sendFile(__dirname + "admin.html"));
 
 // Get points
 app.get("/api/points", (req, res) => {
