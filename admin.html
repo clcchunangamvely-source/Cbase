@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - CLC CHUNANGAMVELY</title>
+    <title>CLC CHUNANGAMVELY - Points Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -12,139 +11,93 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>CLC CHUNANGAMVELY - Admin</h1>
+            <h1>CLC CHUNANGAMVELY</h1>
         </div>
-        <a href="/" class="nav-toggle" style="text-decoration: none; color: #3ba7ff;">
-            <i class="fas fa-home"></i>
-        </a>
+        <button class="nav-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
     </nav>
 
+    <!-- Side Navigation -->
+    <div class="sidenav" id="sideNav">
+        <div class="sidenav-header">
+            <h3>Menu</h3>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidenav-content">
+            <a href="/admin" class="nav-item">
+                <i class="fas fa-edit"></i>
+                <span>Edit Points</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Report Chart</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- PIN Section -->
-            <div id="pinSection">
-                <div class="header-section" style="color: #3ba7ff; margin-bottom: 2rem;">
-                    <h2><i class="fas fa-lock"></i> Secure Access</h2>
-                    <p class="subtitle">Enter admin PIN to continue</p>
+            <div class="header-section">
+                <h2>Current Standings</h2>
+                <p class="subtitle">Live points tracking</p>
+                <div class="last-updated">
+                    <i class="fas fa-clock"></i>
+                    <span id="lastUpdated">Loading...</span>
                 </div>
-                <input type="password" id="adminPin" placeholder="Enter Admin PIN" maxlength="4">
-                <button onclick="checkPin()" style="width: 100%;">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <p id="pinError"></p>
+
+                <!-- Sort Dropdown -->
+                <div class="sort-controls">
+                    <label for="sortSelect">Sort by:</label>
+                    <select id="sortSelect">
+                        <option value="rank">By Rank</option>
+                        <option value="group">By Group Name</option>
+                        <option value="groupNumber">By Group Number</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- Form Section -->
-            <div id="formSection" style="display:none;">
-                <div class="header-section" style="color: #3ba7ff; margin-bottom: 2rem;">
-                    <h2><i class="fas fa-edit"></i> Edit Points</h2>
-                    <p class="subtitle">Update group points</p>
+            <!-- Points Table -->
+            <div class="table-container">
+                <table class="points-table" id="pointsTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Group Name</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Chart Modal -->
+            <div class="modal" id="chartModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Points Chart</h3>
+                        <button class="close-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="pointsChart"></canvas>
+                    </div>
                 </div>
-                
-                <div class="table-container">
-                    <table id="editTable">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-users"></i> Group Name</th>
-                                <th><i class="fas fa-star"></i> Current Points</th>
-                                <th><i class="fas fa-plus-minus"></i> Change Points</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                
-                <button id="saveBtn" style="width: 100%; margin-top: 1rem;">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
             </div>
         </div>
     </main>
 
-    <script>
-        const correctPIN = "2503";
-        let pointsData = {};
-
-        async function checkPin() {
-            const entered = document.getElementById("adminPin").value;
-            const errorElement = document.getElementById("pinError");
-            
-            if (entered === correctPIN) {
-                document.getElementById("pinSection").style.display = "none";
-                document.getElementById("formSection").style.display = "block";
-                loadPoints();
-                errorElement.textContent = "";
-            } else {
-                errorElement.textContent = "Incorrect PIN! Please try again.";
-                document.getElementById("adminPin").value = "";
-                document.getElementById("adminPin").focus();
-            }
-        }
-
-        async function loadPoints() {
-            try {
-                const res = await fetch("/api/points");
-                const data = await res.json();
-                pointsData = data.points || data;
-                const tbody = document.querySelector("#editTable tbody");
-                tbody.innerHTML = "";
-                
-                for (const group in pointsData) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="group-name">${group}</td>
-                        <td class="points-cell">${pointsData[group]}</td>
-                        <td>
-                            <input type="number" id="change-${group}" value="0" 
-                                   style="text-align: center;" 
-                                   placeholder="±0">
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            } catch (error) {
-                console.error('Error loading points:', error);
-                alert('Error loading data. Please refresh the page.');
-            }
-        }
-
-        document.getElementById("saveBtn").addEventListener("click", async () => {
-            try {
-                for (const group in pointsData) {
-                    const change = parseInt(document.getElementById(`change-${group}`).value) || 0;
-                    pointsData[group] += change;
-                }
-                
-                const updateData = {
-                    points: pointsData,
-                    lastUpdated: new Date().toISOString()
-                };
-                
-                await fetch("/api/points", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(updateData)
-                });
-                
-                alert("Points updated successfully!");
-                loadPoints(); // Reload to show updated values
-            } catch (error) {
-                console.error('Error saving points:', error);
-                alert('Error saving changes. Please try again.');
-            }
-        });
-
-        // Allow Enter key to submit PIN
-        document.getElementById("adminPin").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                checkPin();
-            }
-        });
-
-        // Auto-focus PIN input
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById("adminPin").focus();
-        });
-    </script>
+    <!-- Link external JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
